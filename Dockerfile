@@ -33,12 +33,15 @@ RUN apt-get -yqq update \
  && pip3 install boto3 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY bin   $SPACK_ROOT/bin
-COPY etc   $SPACK_ROOT/etc
-COPY lib   $SPACK_ROOT/lib
-COPY share $SPACK_ROOT/share
-COPY var   $SPACK_ROOT/var
-RUN mkdir -p $SPACK_ROOT/opt/spack
+RUN cd /opt && git clone https://github.com/spack/spack.git && cd spack && git checkout tags/v0.16.0
+
+
+ENV MODULEPATH=/opt/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.3.0
+
+RUN sed "/            unset CURRENTLY_BUILDING_DOCKER_IMAGE/i \            . \/usr\/share\/lmod\/6.6\/init\/bash" $SPACK_ROOT/share/spack/docker/entrypoint.bash > $SPACK_ROOT/share/spack/docker/entrypoint.bash.COPY && \
+    mv $SPACK_ROOT/share/spack/docker/entrypoint.bash.COPY $SPACK_ROOT/share/spack/docker/entrypoint.bash
+
+RUN chmod u+x $SPACK_ROOT/share/spack/docker/entrypoint.bash
 
 RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
           /usr/local/bin/docker-shell \
@@ -64,9 +67,6 @@ RUN [ -f ~/.profile ]                                               \
  && sed -i 's/mesg n/( tty -s \&\& mesg n || true )/g' ~/.profile \
  || true
 
-# [WORKAROUND]
-# https://bugs.launchpad.net/ubuntu/+source/lua-posix/+bug/1752082
-RUN ln -s posix_c.so /usr/lib/x86_64-linux-gnu/lua/5.2/posix.so
 
 WORKDIR /root
 SHELL ["docker-shell"]
@@ -76,3 +76,4 @@ RUN spack spec hdf5+mpi
 
 ENTRYPOINT ["/bin/bash", "/opt/spack/share/spack/docker/entrypoint.bash"]
 CMD ["interactive-shell"]
+
