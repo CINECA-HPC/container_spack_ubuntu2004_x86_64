@@ -35,7 +35,6 @@ RUN apt-get -yqq update \
 
 RUN cd /opt && git clone https://github.com/spack/spack.git && cd spack && git checkout tags/v0.16.0
 
-
 ENV MODULEPATH=/opt/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.3.0
 
 RUN sed "/            unset CURRENTLY_BUILDING_DOCKER_IMAGE/i \            . \/usr\/share\/lmod\/6.6\/init\/bash" $SPACK_ROOT/share/spack/docker/entrypoint.bash > $SPACK_ROOT/share/spack/docker/entrypoint.bash.COPY && \
